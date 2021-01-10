@@ -5,7 +5,7 @@ You can add and remove users, start trials, invite winners, check access, enforc
 **NOTE:** This is a standalone version of a feature from Arca, a larger multi-purpose bot that includes Plex management and statistics, as well as Emby/Jellyfin management, sports scores, and a variety of other features. This bot will likely not receive much attention from the developer, as it is meant as a temporary stop gap while Arca is undergoing a major rewrite.
 
 # Installation
-1. Fork this repo with ``git clone https://github.com/nwithan8/PlexManager.git``
+1. Fork this repo with ``git clone https://github.com/nwithan8/PlexDiscordManager.git``
 2. Enter the ``PlexManager`` directory.
 3. Install dependencies with ``pip install -r requirements.txt``
 4. Complete ``settings.py`` with settings for your Discord and Plex servers.
