@@ -18,7 +18,7 @@ from plex import plex_api as px_api
 
 
 def get_discord_server_database(ctx: commands.Context):
-    db_file_path = "databases/database.db"
+    db_file_path = "database/database.db"
     return DiscordMediaServerConnectorDatabase(sqlite_file=db_file_path,
                                                encrypted=False,
                                                media_server_type="plex",
