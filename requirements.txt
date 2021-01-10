@@ -3,3 +3,4 @@ discord
 plexapi
 tautulli
 sqlalchemy
+asyncio
