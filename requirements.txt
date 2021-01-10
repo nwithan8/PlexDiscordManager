@@ -1,0 +1,5 @@
+requests
+discord
+plexapi
+tautulli
+sqlalchemy
