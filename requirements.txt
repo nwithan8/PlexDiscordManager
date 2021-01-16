@@ -4,3 +4,4 @@ plexapi
 tautulli
 sqlalchemy
 asyncio
+cryptography
