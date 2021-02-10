@@ -220,7 +220,7 @@ async def add_to_database_add_to_plex_add_role_send_dm(ctx: commands.Context,
         return utils.StatusResponse(success=False, issue="Could not load Discord user to modify roles.")
 
     if not await discord_helper.add_user_role(user=discord_user, role_name=role_name, reason=role_reason):
-        return utils.StatusResponse(success=False, issue=f"Could not add {role_name} role to Discord user.")
+        return utils.StatusResponse(success=False, issue=f"Could not find {role_name} role to add to Discord user.")
 
     await discord_helper.send_direct_message(user=discord_user, message=dm_message)
 
@@ -263,7 +263,7 @@ async def add_to_database_add_role(ctx: commands.Context,
         return utils.StatusResponse(success=False, issue="Could not load Discord user to modify roles.")
 
     if not await discord_helper.add_user_role(user=discord_user, role_name=role_name, reason=role_reason):
-        return utils.StatusResponse(success=False, issue=f"Could not add {role_name} role to Discord user.")
+        return utils.StatusResponse(success=False, issue=f"Could not find {role_name} role to add to Discord user.")
 
     return utils.StatusResponse(success=True)
 
@@ -294,7 +294,7 @@ async def remove_from_plex_remove_from_database_remove_role_send_dm(ctx: command
         return utils.StatusResponse(success=False, issue="Could not load Discord user to modify roles.")
 
     if not await discord_helper.remove_user_role(user=discord_user, role_name=role_name, reason=role_reason):
-        return utils.StatusResponse(success=False, issue=f"Could not remove {role_name} role from Discord user.")
+        return utils.StatusResponse(success=False, issue=f"Could not find {role_name} role to remove from Discord user.")
 
     await discord_helper.send_direct_message(user=discord_user, message=dm_message)
 
