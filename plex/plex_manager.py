@@ -7,23 +7,13 @@ import time
 from typing import Union, List
 import asyncio
 
-import discord
-from discord.ext import commands
-
+import load_config
 import modules.discord_helper as discord_helper
 import modules.utils as utils
-from database.database import DiscordMediaServerConnectorDatabase, EmbyUser, PlexUser, JellyfinUser
+from databases.media_server_connector.base import DiscordMediaServerConnectorDatabase, EmbyUser, PlexUser, JellyfinUser
 import settings as plex_settings
+from modules.basic_cog import *
 from plex import plex_api as px_api
-
-
-def get_discord_server_database(ctx: commands.Context):
-    db_file_path = "database/database.db"
-    return DiscordMediaServerConnectorDatabase(sqlite_file=db_file_path,
-                                               encrypted=False,
-                                               media_server_type="plex",
-                                               trial_length=plex_settings.TRIAL_LENGTH,
-                                               multi_plex=False)
 
 
 def get_plex_credentials(ctx: commands.Context):
@@ -40,7 +30,7 @@ def get_plex_credentials(ctx: commands.Context):
 
 
 def get_plex_api(ctx: commands.Context):
-    database = get_discord_server_database(ctx=ctx)
+    database = load_config.get_database(media_server_type="plex")
     creds = get_plex_credentials(ctx=ctx)
     return px_api.PlexConnections(plex_credentials=creds, database=database)
 
@@ -351,10 +341,9 @@ async def check_winners(ctx: commands.Context):
         await discord_helper.something_went_wrong(ctx=ctx)
 
 
-class PlexManager(commands.Cog):
+class PlexManager(BasicCog):
     def __init__(self, bot):
-        self.bot = bot
-        print("Plex Manager ready to go.")
+        super().__init__(bot)
 
     async def check_subs(self, ctx: commands.Context):
         for discord_member in discord_helper.get_users_without_roles(bot=self.bot,
