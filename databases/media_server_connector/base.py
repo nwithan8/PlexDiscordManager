@@ -165,13 +165,6 @@ class DiscordMediaServerConnectorDatabase(db.SQLAlchemyDatabase):
         return self.session.query(ExemptUsers).all()
 
     @property
-    def bot_token(self):
-        return self.get_attribute_from_first_entry(table_type=DiscordConfiguration, field_name="BotToken")
-
-    def set_bot_token(self, token: str) -> bool:
-        return self.set_attribute(table_type=DiscordConfiguration, field_name="BotToken", field_value=token)
-
-    @property
     def bot_prefix(self):
         return self.get_attribute_from_first_entry(table_type=DiscordConfiguration, field_name="BotPrefix")
 

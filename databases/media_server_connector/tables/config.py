@@ -5,7 +5,6 @@ from databases.tools import *
 class DiscordConfiguration(Base):
     __tablename__ = "discordConfig"
     ID = Column(Integer, autoincrement=True, primary_key=True)
-    BotToken = Column(String(200), unique=True, nullable=True)
     BotPrefix = Column(String(5), nullable=True)
     AdminID = getColumn(ColumnType.DiscordUserID, unique=True, nullable=True)
     AdminRoleName = getColumn(ColumnType.DiscordRoleName, unique=True, nullable=True)

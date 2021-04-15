@@ -14,12 +14,7 @@ def _read_token_from_file():
         return f.read()
 
 def get_bot_token():
-    database = get_database()
-    token = database.bot_token
-    if not token:
-        token = _read_token_from_file()
-        database.set_bot_token(token)
-    return token
+    return _read_token_from_file()
 
 def get_bot_prefix():
     database = get_database()
