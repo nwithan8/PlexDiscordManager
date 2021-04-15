@@ -8,8 +8,14 @@ class ConfigurationManager(BasicCog):
 
     @commands.group(name="config", pass_context=True)
     async def config(self, ctx: commands.Context):
+        await self.what_subcommand(ctx=ctx)
+
+    @config.command(name="prefix", pass_context=True)
+    async def config_change_prefix(self, ctx: commands.Context, new_prefix: str):
         database = get_database()
-        print(database.admin_role_name)
+        if database.set_bot_prefix(prefix=new_prefix):
+            await self.respond(item="Prefix updated. You'll need to restart the bot for this to take effect.", ctx=ctx)
+
 
 def setup(bot):
     bot.add_cog(ConfigurationManager(bot))
