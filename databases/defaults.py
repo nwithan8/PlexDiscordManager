@@ -13,3 +13,4 @@ DiscordRoleName = String(100)
 DiscordUserID = BigInteger
 DiscordServerID = BigInteger
 DiscordUserName = String(100)
+URL = String(1400)

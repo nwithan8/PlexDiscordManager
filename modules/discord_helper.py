@@ -4,6 +4,8 @@ import discord
 from discord.ext import commands, tasks
 import asyncio
 
+def get_cog_by_name(bot: commands.Bot, extension_name: str):
+    return bot.cogs.get(extension_name, None)
 
 def discord_get(from_items, name: str):
     return discord.utils.get(from_items, name=name)

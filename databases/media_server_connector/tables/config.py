@@ -1,13 +1,15 @@
-from databases.defaults import *
-from databases.tools import *
+from sqlalchemy import Table, VARCHAR, INTEGER, BIGINT, BOOLEAN, Column, Integer, String, Boolean
+
+from databases.tools import Base, get_column, ColumnType
+from modules.database_class import none_as_null, map_attributes
 
 
 class DiscordConfiguration(Base):
     __tablename__ = "discordConfig"
     ID = Column(Integer, autoincrement=True, primary_key=True)
     BotPrefix = Column(String(5), nullable=True)
-    AdminID = getColumn(ColumnType.DiscordUserID, unique=True, nullable=True)
-    AdminRoleName = getColumn(ColumnType.DiscordRoleName, unique=True, nullable=True)
+    AdminID = get_column(ColumnType.DiscordUserID, unique=True, nullable=True)
+    AdminRoleName = get_column(ColumnType.DiscordRoleName, unique=True, nullable=True)
 
     @none_as_null
     @map_attributes
@@ -18,7 +20,7 @@ class DiscordConfiguration(Base):
 
 class ExemptUsers(Base):
     __tablename__ = "exemptUsers"
-    UserID = getColumn(ColumnType.DiscordUserID, primary_key=True, unique=True)
+    UserID = get_column(ColumnType.DiscordUserID, primary_key=True, unique=True)
 
     @none_as_null
     @map_attributes
@@ -29,7 +31,7 @@ class ExemptUsers(Base):
 
 class TrialConfiguration(Base):
     __tablename__ = "trialConfig"
-    RoleName = getColumn(ColumnType.DiscordRoleName, primary_key=True, unique=True)
+    RoleName = get_column(ColumnType.DiscordRoleName, primary_key=True, unique=True)
     AutomaticallyCheck = Column(Boolean)
     LengthSeconds = Column(Integer)
     CheckFrequencySeconds = Column(Integer)
@@ -44,7 +46,7 @@ class TrialConfiguration(Base):
 class WinnerConfiguration(Base):
     __tablename__ = "winnerConfig"
     AutomaticallyCheck = Column(Boolean)
-    RoleName = getColumn(ColumnType.DiscordRoleName, primary_key=True, unique=True)
+    RoleName = get_column(ColumnType.DiscordRoleName, primary_key=True, unique=True)
     CheckFrequencySeconds = Column(Integer)
     MinutesRequiredPerWeek = Column(Integer)
 
@@ -57,7 +59,7 @@ class WinnerConfiguration(Base):
 
 class SubscriberRoles(Base):
     __tablename__ = "userRoles"
-    RoleName = getColumn(ColumnType.DiscordRoleName, primary_key=True, unique=True)
+    RoleName = get_column(ColumnType.DiscordRoleName, primary_key=True, unique=True)
 
     @none_as_null
     @map_attributes
@@ -69,7 +71,7 @@ class SubscriberRoles(Base):
 class SubscriberConfiguration(Base):
     __tablename__ = "subscriberConfig"
     AutomaticallyCheck = Column(Boolean)
-    InvitedRoleName = getColumn(ColumnType.DiscordRoleName, primary_key=True, unique=True)
+    InvitedRoleName = get_column(ColumnType.DiscordRoleName, primary_key=True, unique=True)
 
     @none_as_null
     @map_attributes
@@ -84,7 +86,7 @@ class MediaServerConfiguration(Base):
     SubscriberWatchlistTitleTemplate = Column(String(200))
     SubscriberPlaylistTitleTemplate = Column(String(200))
     EnableBlacklist = Column(Boolean)
-    CurrentlyPlayingRoleName = getColumn(ColumnType.DiscordRoleName, unique=True, nullable=True)
+    CurrentlyPlayingRoleName = get_column(ColumnType.DiscordRoleName, unique=True, nullable=True)
 
     @none_as_null
     @map_attributes

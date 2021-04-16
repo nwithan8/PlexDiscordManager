@@ -7,6 +7,7 @@ from sqlalchemy.orm import sessionmaker
 
 import modules.encryption as encryption
 
+
 def none_as_null(func):
     @wraps(func)
     def wrapper(self, *args, **kwargs):
@@ -29,6 +30,18 @@ def map_attributes(func):
         for k, v in kwargs.items():
             if getattr(self, k):
                 setattr(self, k, v)
+    return wrapper
+
+def false_if_error(func):
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        """
+        Return False if error encountered
+        """
+        try:
+            return func(self, *args, **kwargs)
+        except:
+            return False
     return wrapper
 
 class SQLAlchemyDatabase:
@@ -84,27 +97,70 @@ class SQLAlchemyDatabase:
         self.session = Session()
 
 
+    def get_first_entry(self, table_type):
+        return self.session.query(table_type).first()
+
+    def get_all_entries(self, table_type):
+        return self.session.query(table_type).all()
+
     def get_attribute_from_first_entry(self, table_type, field_name):
-        entry = self.session.query(table_type).first()
+        entry = self.get_first_entry(table_type=table_type)
         return getattr(entry, field_name, None)
 
     def get_attribute_from_last_entry(self, table_type, field_name):
-        entry = self.session.query(table_type).last()
+        entry = self.get_first_entry(table_type=table_type)
         return getattr(entry, field_name, None)
 
-    def set_attribute(self, table_type, field_name, field_value) -> bool:
-        entry = self.session.query(table_type).first()
+    def set_attribute_of_first_entry(self, table_type, field_name, field_value) -> bool:
+        entry = self.get_first_entry(table_type=table_type)
         if not entry:
             return self.create_first_entry(table_type=table_type, **{field_name: field_value})
         else:
-            setattr(entry, field_name, field_value)
-            self.commit()
-            return True
+            return self.update_entry(entry=entry, field_name=field_name, field_value=field_value)
 
+    @false_if_error
     def create_first_entry(self, table_type, **kwargs) -> bool:
-        entry = self.session.query(table_type).first()
+        entry = self.get_first_entry(table_type=table_type)
         if not entry:
-            entry = table_type(**kwargs)
-            self.session.add(entry)
-            self.commit()
+            return self.create_entry(table_type=table_type, **kwargs)
         return True
+
+    @false_if_error
+    def create_entry(self, table_type, **kwargs) -> bool:
+        entry = table_type(**kwargs)
+        self.session.add(entry)
+        self.commit()
+        return True
+
+    @false_if_error
+    def update_entry_single_field(self, entry, field_name, field_value) -> bool:
+        setattr(entry, field_name, field_value)
+        self.commit()
+        return True
+
+    @false_if_error
+    def update_entry_multiple_fields(self, entry, **kwargs) -> bool:
+        for field, value in kwargs.items():
+            setattr(entry, field, value)
+        self.commit()
+        return True
+
+    @false_if_error
+    def update_first_entry(self, table_type, field_name, field_value) -> bool:
+        entry = self.get_first_entry(table_type=table_type)
+        setattr(entry, field_name, field_value)
+        self.commit()
+        return True
+
+    @false_if_error
+    def replace_first_entry(self, table_type, **kwargs) -> bool:
+        entry = self.get_first_entry(table_type=table_type)
+        if entry:
+            return self.update_entry_multiple_fields(entry=entry, **kwargs)
+        else:
+            return self.create_first_entry(table_type=table_type, **kwargs)
+
+
+class CustomTable:
+    def __init__(self):
+        self._ignore = []
