@@ -57,7 +57,7 @@ def get_table_name(table_schema: DeclarativeMeta) -> str:
     return table_schema_to_table_name(table_schema=table_schema)
 
 
-def config_type_to_table(config_type: ConfigType):
+def config_type_to_table_schema(config_type: ConfigType):
     if config_type == ConfigType.Discord:
         return DiscordConfiguration
     if config_type == ConfigType.Exemptions:
@@ -129,6 +129,6 @@ def string_to_config_type(config_type_string: str) -> Union[ConfigType, None]:
     return None
 
 
-def string_to_table(config_type_string: str) -> Union[Table, None]:
+def string_to_table_schema(config_type_string: str) -> Union[Table, None]:
     config_type = string_to_config_type(config_type_string)
-    return config_type_to_table(config_type)
+    return config_type_to_table_schema(config_type)

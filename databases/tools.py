@@ -1,10 +1,9 @@
-from typing import Union, List
+from typing import List
 
-from sqlalchemy import Table, VARCHAR, INTEGER, BIGINT, BOOLEAN
+from sqlalchemy import Table
 from sqlalchemy.orm import declarative_base, DeclarativeMeta
 from databases.defaults import *
 from modules import utils, discord_helper
-from modules.database_class import CustomTable
 
 Base = declarative_base()
 

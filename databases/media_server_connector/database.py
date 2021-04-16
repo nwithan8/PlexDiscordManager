@@ -1,12 +1,12 @@
 import time
 
-import modules.database_class as db
+import databases.database_class as db
 
 from databases.media_server_connector.tables.blacklist import *
 from databases.media_server_connector.tables.users import *
 from databases.media_server_connector.tables.config import *
 from databases.media_server_connector.tables.media_server_settings import *
-from modules.database_class import false_if_error
+from databases.database_class import false_if_error
 
 
 class DiscordMediaServerConnectorDatabase(db.SQLAlchemyDatabase):
@@ -141,38 +141,38 @@ class DiscordMediaServerConnectorDatabase(db.SQLAlchemyDatabase):
     # Configuration
     @property
     def _discord_config(self):
-        return self.get_first_entry(table_type=DiscordConfiguration)
+        return self.get_first_entry(table_schema=DiscordConfiguration)
 
     @property
     def _winner_config(self):
-        return self.get_first_entry(table_type=WinnerConfiguration)
+        return self.get_first_entry(table_schema=WinnerConfiguration)
 
     @property
     def _trial_config(self):
-        return self.get_first_entry(table_type=TrialConfiguration)
+        return self.get_first_entry(table_schema=TrialConfiguration)
 
     @property
     def _subscriber_config(self):
-        return self.get_first_entry(table_type=SubscriberConfiguration)
+        return self.get_first_entry(table_schema=SubscriberConfiguration)
 
     @property
     def _media_config(self):
-        return self.get_first_entry(table_type=MediaServerConfiguration)
+        return self.get_first_entry(table_schema=MediaServerConfiguration)
 
     @property
     def _subscriber_roles(self):
-        return self.get_all_entries(table_type=SubscriberRoles)
+        return self.get_all_entries(table_schema=SubscriberRoles)
 
     @property
     def _exempt_users(self):
-        return self.get_all_entries(table_type=ExemptUsers)
+        return self.get_all_entries(table_schema=ExemptUsers)
 
     @property
     def bot_prefix(self):
-        return self.get_attribute_from_first_entry(table_type=DiscordConfiguration, field_name="BotPrefix")
+        return self.get_attribute_from_first_entry(table_schema=DiscordConfiguration, field_name="BotPrefix")
 
     def set_bot_prefix(self, prefix: str) -> bool:
-        return self.set_attribute_of_first_entry(table_type=DiscordConfiguration, field_name="BotPrefix",
+        return self.set_attribute_of_first_entry(table_schema=DiscordConfiguration, field_name="BotPrefix",
                                                  field_value=prefix)
 
     @property
@@ -182,7 +182,7 @@ class DiscordMediaServerConnectorDatabase(db.SQLAlchemyDatabase):
         return self._discord_config.AdminID
 
     def set_admin_id(self, admin_id: str) -> bool:
-        return self.set_attribute_of_first_entry(table_type=DiscordConfiguration, field_name="AdminID",
+        return self.set_attribute_of_first_entry(table_schema=DiscordConfiguration, field_name="AdminID",
                                                  field_value=admin_id)
 
     @property
@@ -192,13 +192,13 @@ class DiscordMediaServerConnectorDatabase(db.SQLAlchemyDatabase):
         return self._discord_config.AdminRoleName
 
     def set_admin_role_name(self, admin_role_name: str) -> bool:
-        return self.set_attribute_of_first_entry(table_type=DiscordConfiguration,
+        return self.set_attribute_of_first_entry(table_schema=DiscordConfiguration,
                                                  field_name="AdminRoleName",
                                                  field_value=admin_role_name)
 
     # don't need decorator. The create_first_entry one already has it
     def set_media_server_configuration(self, **kwargs) -> bool:
-        return self.create_first_entry(table_type=MediaServerConfiguration, **kwargs)
+        return self.create_first_entry(table_schema=MediaServerConfiguration, **kwargs)
 
     @property
     def trial_role_name(self):
@@ -208,7 +208,7 @@ class DiscordMediaServerConnectorDatabase(db.SQLAlchemyDatabase):
 
     # don't need decorator. The create_first_entry one already has it
     def set_trial_configuration(self, **kwargs) -> bool:
-        return self.create_first_entry(table_type=TrialConfiguration, **kwargs)
+        return self.create_first_entry(table_schema=TrialConfiguration, **kwargs)
 
     @property
     def winner_role_name(self):
@@ -218,18 +218,18 @@ class DiscordMediaServerConnectorDatabase(db.SQLAlchemyDatabase):
 
     # don't need decorator. The create_first_entry one already has it
     def set_winner_configuration(self, **kwargs) -> bool:
-        return self.create_first_entry(table_type=WinnerConfiguration, **kwargs)
+        return self.create_first_entry(table_schema=WinnerConfiguration, **kwargs)
 
     # don't need decorator. The create_first_entry one already has it
     def set_subscriber_configuration(self, **kwargs) -> bool:
-        return self.create_first_entry(table_type=SubscriberConfiguration, **kwargs)
+        return self.create_first_entry(table_schema=SubscriberConfiguration, **kwargs)
 
     @property
     def subscriber_role_names(self):
         return [entry.RoleName for entry in self._subscriber_roles]
 
     def add_subscriber_role(self, role_name: str) -> bool:
-        return self.create_entry(table_type=SubscriberRoles, RoleName=role_name)
+        return self.create_entry(table_schema=SubscriberRoles, RoleName=role_name)
 
     @false_if_error
     def remove_subscriber_role(self, role_name: str) -> bool:
@@ -238,7 +238,7 @@ class DiscordMediaServerConnectorDatabase(db.SQLAlchemyDatabase):
 
     # don't need decorator. The create_entry one already has it
     def add_exempt_user(self, user_id: int) -> bool:
-        return self.create_entry(table_type=SubscriberRoles, UserID=user_id)
+        return self.create_entry(table_schema=SubscriberRoles, UserID=user_id)
 
     @false_if_error
     def remove_exempt_user(self, user_id: int) -> bool:
@@ -247,45 +247,45 @@ class DiscordMediaServerConnectorDatabase(db.SQLAlchemyDatabase):
 
     # don't need decorator. The update_entry one already has it
     def update_config(self, table, setting_name, setting_value) -> bool:
-        entry = self.get_first_entry(table_type=table)
+        entry = self.get_first_entry(table_schema=table)
         return self.update_entry_single_field(entry=entry, field_name=setting_name, field_value=setting_value)
 
     def create_initial_config(self, table, **kwargs) -> bool:
-        return self.replace_first_entry(table_type=table, **kwargs)
+        return self.replace_first_entry(table_schema=table, **kwargs)
 
     # Media Server Settings
     @property
     def _plex_settings(self):
-        return self.get_first_entry(table_type=PlexSettings)
+        return self.get_first_entry(table_schema=PlexSettings)
 
     # don't need decorator. The create_first_entry one already has it
     def set_plex_settings(self, **kwargs) -> bool:
-        return self.create_first_entry(table_type=PlexSettings, **kwargs)
+        return self.create_first_entry(table_schema=PlexSettings, **kwargs)
 
     # don't need decorator. The update_first_entry one already has it
     def edit_plex_setting(self, field_name, field_value) -> bool:
-        return self.update_first_entry(table_type=PlexSettings, field_name=field_name, field_value=field_value)
+        return self.update_first_entry(table_schema=PlexSettings, field_name=field_name, field_value=field_value)
 
     @property
     def _tautulli_settings(self):
-        return self.get_first_entry(table_type=TautulliSettings)
+        return self.get_first_entry(table_schema=TautulliSettings)
 
     # don't need decorator. The create_first_entry one already has it
     def set_tautulli_settings(self, **kwargs) -> bool:
-        return self.create_first_entry(table_type=TautulliSettings, **kwargs)
+        return self.create_first_entry(table_schema=TautulliSettings, **kwargs)
 
     # don't need decorator. The update_first_entry one already has it
     def edit_tautulli_setting(self, field_name, field_value) -> bool:
-        return self.update_first_entry(table_type=TautulliSettings, field_name=field_name, field_value=field_value)
+        return self.update_first_entry(table_schema=TautulliSettings, field_name=field_name, field_value=field_value)
 
     @property
     def _ombi_settings(self):
-        return self.get_first_entry(table_type=OmbiSettings)
+        return self.get_first_entry(table_schema=OmbiSettings)
 
     # don't need decorator. The create_first_entry one already has it
     def set_ombi_settings(self, **kwargs) -> bool:
-        return self.create_first_entry(table_type=OmbiSettings, **kwargs)
+        return self.create_first_entry(table_schema=OmbiSettings, **kwargs)
 
     # don't need decorator. The update_first_entry one already has it
     def edit_ombi_setting(self, field_name, field_value) -> bool:
-        return self.update_first_entry(table_type=OmbiSettings, field_name=field_name, field_value=field_value)
+        return self.update_first_entry(table_schema=OmbiSettings, field_name=field_name, field_value=field_value)

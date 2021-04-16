@@ -1,8 +1,8 @@
 from configuration.dm_configuration_manager import DMConfigurationSession
-from databases.media_server_connector.tables.table_connector import string_to_config_type
+from databases.media_server_connector.table_connector import string_to_config_type
 from load_config import get_database
 from modules import discord_helper
-from modules.basic_cog import *
+from modules.classes.basic_cog import *
 
 
 class ConfigurationManager(BasicCog):

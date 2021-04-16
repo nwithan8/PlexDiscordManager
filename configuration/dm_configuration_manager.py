@@ -3,20 +3,18 @@ from typing import Union
 import discord
 from discord.ext import commands
 
-from databases.media_server_connector.tables.table_connector import ConfigType, config_type_to_string, \
-    config_type_to_table, \
-    string_to_config_type, table_schema_to_table, get_table_name
-from databases.tools import get_table_columns, get_table_schema_name, sql_type_to_human_type_string, \
-    human_type_to_python_type, \
+from databases.media_server_connector.table_connector import ConfigType, config_type_to_table_schema, \
+    string_to_config_type, table_schema_to_table
+from databases.tools import get_table_schema_name, human_type_to_python_type, \
     table_schema_to_discord_embed, table_values_to_discord_embeds, table_schema_to_name_type_pairs
 from load_config import get_database
 from modules import discord_helper
-from modules.dm_helper import DMSession
+from modules.classes.dm_session import DMSession
 
 collected_config = []
 
 def generate_config_options_messages(config_type: ConfigType):
-    table_schema = config_type_to_table(config_type=config_type)
+    table_schema = config_type_to_table_schema(config_type=config_type)
     table = table_schema_to_table(table_schema=table_schema)
     table_schema_name = get_table_schema_name(table=table_schema)
     return [f"These are the available {discord_helper.bold(table_schema_name)} variables.\n",
@@ -33,7 +31,7 @@ class DMConfigurationSession(DMSession):
         self._database = get_database()
 
     def generate_setup_script(self, config_type: ConfigType):
-        table_schema = config_type_to_table(config_type=config_type)
+        table_schema = config_type_to_table_schema(config_type=config_type)
         table = table_schema_to_table(table_schema=table_schema)
         name_type_pairs = table_schema_to_name_type_pairs(table=table)
         prompt_callback_pairs = []
@@ -49,7 +47,7 @@ class DMConfigurationSession(DMSession):
         await self.send_messages(messages=messages)
 
     async def send_current_config(self, config_type: ConfigType):
-        table_schema = config_type_to_table(config_type=config_type)
+        table_schema = config_type_to_table_schema(config_type=config_type)
         if not table_schema:
             await self.send_message(message="That table_schema does not exist.")
         else:
@@ -65,7 +63,7 @@ class DMConfigurationSession(DMSession):
     async def update_config(self, config_type: str, variable_name: str, variable_value: str):
         config_type = string_to_config_type(config_type_string=config_type)
         if config_type:
-            table = config_type_to_table(config_type=config_type)
+            table = config_type_to_table_schema(config_type=config_type)
             if table:
                 variable_value = human_type_to_python_type(human_type=variable_value)
                 if self._database.update_config(table=table, setting_name=variable_name, setting_value=variable_value):
@@ -74,7 +72,7 @@ class DMConfigurationSession(DMSession):
                     await self.send_message(message=f"Could not update {variable_name}.")
 
     async def _make_new_config(self, config_type: ConfigType, name_value_pairs: dict):
-        table_schema = config_type_to_table(config_type=config_type)
+        table_schema = config_type_to_table_schema(config_type=config_type)
         return self._database.create_initial_config(table=table_schema, **name_value_pairs)
 
     async def initialize_config(self, config_type: ConfigType):
@@ -86,7 +84,7 @@ class DMConfigurationSession(DMSession):
         new_variables = collected_config
 
         name_value_pairs = {}
-        table_schema = config_type_to_table(config_type=config_type)
+        table_schema = config_type_to_table_schema(config_type=config_type)
         table = table_schema_to_table(table_schema=table_schema)
         i = 0
         for column in table.columns:

@@ -10,9 +10,9 @@ import asyncio
 import load_config
 import modules.discord_helper as discord_helper
 import modules.utils as utils
-from databases.media_server_connector.base import DiscordMediaServerConnectorDatabase, EmbyUser, PlexUser, JellyfinUser
+from databases.media_server_connector.database import EmbyUser, PlexUser, JellyfinUser
 import settings as plex_settings
-from modules.basic_cog import *
+from modules.classes.basic_cog import *
 from plex import plex_api as px_api
 
 

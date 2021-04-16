@@ -1,8 +1,7 @@
 import discord
 from discord.ext import commands
 
-from modules.basic_cog import BasicCog
-from modules.discord_helper import get_cog_by_name
+from modules.classes.basic_cog import BasicCog
 
 
 class EventManager(BasicCog):

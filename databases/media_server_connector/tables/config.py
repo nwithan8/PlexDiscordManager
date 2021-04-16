@@ -1,7 +1,7 @@
-from sqlalchemy import Table, VARCHAR, INTEGER, BIGINT, BOOLEAN, Column, Integer, String, Boolean
+from sqlalchemy import Column, Integer, String, Boolean
 
 from databases.tools import Base, get_column, ColumnType
-from modules.database_class import none_as_null, map_attributes
+from databases.database_class import none_as_null, map_attributes
 
 
 class DiscordConfiguration(Base):

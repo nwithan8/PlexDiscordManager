@@ -97,37 +97,37 @@ class SQLAlchemyDatabase:
         self.session = Session()
 
 
-    def get_first_entry(self, table_type):
-        return self.session.query(table_type).first()
+    def get_first_entry(self, table_schema):
+        return self.session.query(table_schema).first()
 
-    def get_all_entries(self, table_type):
-        return self.session.query(table_type).all()
+    def get_all_entries(self, table_schema):
+        return self.session.query(table_schema).all()
 
-    def get_attribute_from_first_entry(self, table_type, field_name):
-        entry = self.get_first_entry(table_type=table_type)
+    def get_attribute_from_first_entry(self, table_schema, field_name):
+        entry = self.get_first_entry(table_schema=table_schema)
         return getattr(entry, field_name, None)
 
-    def get_attribute_from_last_entry(self, table_type, field_name):
-        entry = self.get_first_entry(table_type=table_type)
+    def get_attribute_from_last_entry(self, table_schema, field_name):
+        entry = self.get_first_entry(table_schema=table_schema)
         return getattr(entry, field_name, None)
 
-    def set_attribute_of_first_entry(self, table_type, field_name, field_value) -> bool:
-        entry = self.get_first_entry(table_type=table_type)
+    def set_attribute_of_first_entry(self, table_schema, field_name, field_value) -> bool:
+        entry = self.get_first_entry(table_schema=table_schema)
         if not entry:
-            return self.create_first_entry(table_type=table_type, **{field_name: field_value})
+            return self.create_first_entry(table_schema=table_schema, **{field_name: field_value})
         else:
-            return self.update_entry(entry=entry, field_name=field_name, field_value=field_value)
+            return self.update_first_entry(table_schema=table_schema, field_name=field_name, field_value=field_value)
 
     @false_if_error
-    def create_first_entry(self, table_type, **kwargs) -> bool:
-        entry = self.get_first_entry(table_type=table_type)
+    def create_first_entry(self, table_schema, **kwargs) -> bool:
+        entry = self.get_first_entry(table_schema=table_schema)
         if not entry:
-            return self.create_entry(table_type=table_type, **kwargs)
+            return self.create_entry(table_schema=table_schema, **kwargs)
         return True
 
     @false_if_error
-    def create_entry(self, table_type, **kwargs) -> bool:
-        entry = table_type(**kwargs)
+    def create_entry(self, table_schema, **kwargs) -> bool:
+        entry = table_schema(**kwargs)
         self.session.add(entry)
         self.commit()
         return True
@@ -146,19 +146,19 @@ class SQLAlchemyDatabase:
         return True
 
     @false_if_error
-    def update_first_entry(self, table_type, field_name, field_value) -> bool:
-        entry = self.get_first_entry(table_type=table_type)
+    def update_first_entry(self, table_schema, field_name, field_value) -> bool:
+        entry = self.get_first_entry(table_schema=table_schema)
         setattr(entry, field_name, field_value)
         self.commit()
         return True
 
     @false_if_error
-    def replace_first_entry(self, table_type, **kwargs) -> bool:
-        entry = self.get_first_entry(table_type=table_type)
+    def replace_first_entry(self, table_schema, **kwargs) -> bool:
+        entry = self.get_first_entry(table_schema=table_schema)
         if entry:
             return self.update_entry_multiple_fields(entry=entry, **kwargs)
         else:
-            return self.create_first_entry(table_type=table_type, **kwargs)
+            return self.create_first_entry(table_schema=table_schema, **kwargs)
 
 
 class CustomTable:

@@ -11,9 +11,9 @@ from plexapi import exceptions as plex_exceptions
 
 import modules.utils as utils
 from modules.encryption import Encryption
-from modules.ombi import OmbiConnector
-from modules.tautulli import TautulliConnector
-from databases.media_server_connector.base import DiscordMediaServerConnectorDatabase
+from modules.connectors.ombi import OmbiConnector
+from modules.connectors.tautulli import TautulliConnector
+from databases.media_server_connector.database import DiscordMediaServerConnectorDatabase
 
 all_movie_ratings = ['12', 'Approved', 'Passed', 'G', 'GP', 'PG', 'PG-13', 'M', 'R', 'NC-17', 'Unrated', 'Not Rated',
                      'NR', 'None']

@@ -1,4 +1,4 @@
-from databases.media_server_connector.base import DiscordMediaServerConnectorDatabase
+from databases.media_server_connector.database import DiscordMediaServerConnectorDatabase
 
 def get_database(media_server_type: str = "plex", **kwargs):
     db_file_path = "databases/media_server_connector/database.db"
