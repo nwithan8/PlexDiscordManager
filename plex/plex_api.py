@@ -20,6 +20,31 @@ all_movie_ratings = ['12', 'Approved', 'Passed', 'G', 'GP', 'PG', 'PG-13', 'M', 
 all_tv_ratings = ['TV-Y', 'TV-Y7', 'TV-G', 'TV-PG', 'TV-14', 'TV-MA', 'NR']
 
 
+class TautulliCredentials:
+    def __init__(self, tautulli_settings_entry):
+        self.enabled = getattr(tautulli_settings_entry, "Enabled", False)
+        self.url = getattr(tautulli_settings_entry, "URL")
+        self.api_key = getattr(tautulli_settings_entry, "ApiKey")
+
+
+class OmbiCredentials:
+    def __init__(self, ombi_settings_entry):
+        self.enabled = getattr(ombi_settings_entry, "Enabled", False)
+        self.url = getattr(ombi_settings_entry, "URL")
+        self.api_key = getattr(ombi_settings_entry, "ApiKey")
+
+
+class PlexCredentials:
+    def __init__(self, plex_settings_entry, tautulli_settings_entry, ombi_settings_entry):
+        self.plex_url = plex_settings_entry.URL
+        self.plex_token = plex_settings_entry.Token
+        self.plex_server_name = plex_settings_entry.Name
+        self.plex_server_alt_name = plex_settings_entry.AltName
+        self.terminate_message = plex_settings_entry.TerminateMessage
+        self.tautulli = (TautulliCredentials(tautulli_settings_entry=tautulli_settings_entry) if tautulli_settings_entry else None)
+        self.ombi = (OmbiCredentials(ombi_settings_entry=ombi_settings_entry) if ombi_settings_entry else None)
+
+
 class PlexInstance:
     def __init__(self,
                  url: str,
@@ -70,18 +95,15 @@ class PlexInstance:
         if tautulli_info:
             self.set_tautulli_connection(tautulli_info)
 
-
     def set_tautulli_connection(self, tautulli_info):
-        self.use_tautulli = tautulli_info.get('enable', False)
+        self.use_tautulli = tautulli_info.enabled
         if self.use_tautulli:
-            self.tautulli = TautulliConnector(url=tautulli_info.get('url'), api_key=tautulli_info.get('api_key'))
-
+            self.tautulli = TautulliConnector(url=tautulli_info.url, api_key=tautulli_info.api_key)
 
     def set_ombi_connection(self, ombi_info):
-        self.use_ombi = ombi_info.get('enable', False)
+        self.use_ombi = ombi_info.enabled
         if self.use_ombi:
-            self.ombi = OmbiConnector(url=ombi_info.get('url'), api_key=ombi_info.get('api_key'))
-
+            self.ombi = OmbiConnector(url=ombi_info.url, api_key=ombi_info.api_key)
 
     def get_user_creds(self, user_id) -> dict:
         if self.crypt:
@@ -104,7 +126,6 @@ class PlexInstance:
             return self.crypt.encrypt_file(text=text, filename=f'{self.crypt.key_folder}/{user_id}.json')
         return False
 
-
     def get_media_item(self, title: str, rating_key=None, library_id=None):
         library = self.server.library
         if library_id:
@@ -118,34 +139,28 @@ class PlexInstance:
             return results[0]  # assume first result is correct
         return None
 
-
     def get_watch_now_link(self, rating_key: str) -> str:
         return f"https://app.plex.tv/desktop#!/server/{self.id}//details?key=%2Flibrary%2Fmetadata%2F{rating_key}"
-
 
     def get_media_info(self, rating_key) -> Tuple[str, str]:
         r = requests.get(f'{self.url}/library/metadata/{rating_key}?X-Plex-Token={self.token}').content
         tree = ET.fromstring(r)
         return tree.get('librarySectionID'), tree[0].get('title')
 
-
-    def get_rating_key(self, url = None) -> str:
+    def get_rating_key(self, url=None) -> str:
         if not url:
             url = self.url
         return str(re.search('metadata%2F(\d*)', url).group(1))
 
-
     def find_url(self, text) -> str:
         pattern = '{}\S*'.format(self.url.replace('.', '\.'))
         return str(re.search(pattern, text).group(0))
-
 
     def get_playlist(self, playlist_name):
         for playlist in self.server.playlists():
             if playlist.title == playlist_name:
                 return playlist
         return None
-
 
     def add_to_playlist(self, playlist_title, rating_key, item_to_add) -> str:
         playlist = self.get_playlist(playlist_name=playlist_title)
@@ -162,7 +177,6 @@ class PlexInstance:
             return "New {}list created and item added.".format(
                 'play' if item_to_add.type in ['artist', 'track', 'album'] else 'watch')
 
-
     def url_in_message(self, message) -> Union[str, None]:
         server_id = self.server.machineIdentifier
         if server_id in message.content and 'metadata%2F' in message.content:
@@ -178,7 +192,6 @@ class PlexInstance:
             return None
         return None
 
-
     @property
     def sub_count(self) -> int:
         count = 0
@@ -189,7 +202,6 @@ class PlexInstance:
                     break
         return count
 
-
     @property
     def users(self) -> List[MyPlexUser]:
         try:
@@ -198,14 +210,12 @@ class PlexInstance:
             print(f"Error in getServerUsers: {e}")
         return []
 
-
     def get_user(self, username) -> Union[MyPlexUser, None]:
         try:
             return self.server.myPlexAccount().user(username=username)
         except Exception as e:
             print(f"Error in getServerUser: {e}")
         return None
-
 
     @property
     def plex_friends(self) -> List[MyPlexUser]:
@@ -224,7 +234,6 @@ class PlexInstance:
                 return True
         return False
 
-
     def add_user(self, plex_username: str) -> utils.StatusResponse:
         try:
             self.server.myPlexAccount().inviteFriend(user=plex_username, server=self.server,
@@ -241,7 +250,6 @@ class PlexInstance:
         except Exception as e:
             return utils.StatusResponse(success=False, issue=e.__str__())
 
-
     def remove_user(self, plex_username: str) -> utils.StatusResponse:
         try:
             self.server.myPlexAccount().removeFriend(user=plex_username)
@@ -251,30 +259,25 @@ class PlexInstance:
         except Exception as e:
             return utils.StatusResponse(success=False, issue=e.__str__())
 
-
     def refresh_tautulli_users(self) -> bool:
         if self.use_tautulli:
             return self.tautulli.refresh_users()
         return False
-
 
     def delete_user_from_tautulli(self, plex_username) -> bool:
         if self.use_tautulli:
             return self.tautulli.delete_user(plex_username=plex_username)
         return False
 
-
     def refresh_ombi_users(self) -> bool:
         if self.use_ombi:
             return self.ombi.refresh_users()
         return False
 
-
     def delete_user_from_ombi(self, username: str) -> bool:
         if self.use_ombi:
             return self.ombi.delete_user(plex_username=username)
         return False
-
 
     def get_live_tv_dvrs(self):
         data = self._get(hdr=self.auth_header, endpoint='/livetv/dvrs')
@@ -282,7 +285,6 @@ class PlexInstance:
             if data.get('MediaContainer').get('Dvr'):
                 return [DVR(item) for item in data.get('MediaContainer').get('Dvr')]
         return None
-
 
     def get_cloud_key(self):
         if not self.cloud_key:
@@ -293,14 +295,12 @@ class PlexInstance:
                 return None
         return self.cloud_key
 
-
     def get_live_tv_sessions(self):
         data = self._get(hdr=self.auth_header, endpoint='/livetv/sessions')
         if data:
             if data.get('MediaContainer').get('Metadata'):
                 return [TVSession(item) for item in data.get('MediaContainer').get('Metadata')]
         return None
-
 
     def get_hubs(self, identifier=None):
         data = self._get(hdr=self.auth_header, endpoint=f'/{self.get_cloud_key()}/hubs/discover')
@@ -313,13 +313,11 @@ class PlexInstance:
             return [Hub(hub) for hub in data['MediaContainer']['Hub']]
         return None
 
-
     def get_dvr_schedule(self):
         data = self._get(hdr=self.auth_header, endpoint='/media/subscriptions/scheduled')
         if data:
             return DVRSchedule(data.get('MediaContainer'))
         return None
-
 
     def get_dvr_items(self):
         data = self._get(hdr=self.auth_header, endpoint='/media/subscriptions')
@@ -327,13 +325,11 @@ class PlexInstance:
             return [DVRItem(item) for item in data.get('MediaContainer').get('MediaSubscription')]
         return None
 
-
     def delete_dvr_item(self, itemID):
         data = self._delete(hdr=self.auth_header, endpoint='/media/subscription/{}'.format(itemID))
         if str(data.status_code).startswith('2'):
             return True
         return False
-
 
     def get_homepage_items(self):
         data = self._get(hdr=self.auth_header, endpoint='/hubs')
@@ -341,13 +337,11 @@ class PlexInstance:
             return [Hub(item) for item in data.get('MediaContainer').get('Hub')]
         return None
 
-
     def _get(self, hdr, endpoint, data=None):
         """ Returns JSON """
         hdr = {'accept': 'application/json', **hdr}
         res = requests.get(f'{self.url}{endpoint}', headers=hdr, data=json.dumps(data)).json()
         return res
-
 
     def _post(self, hdr, endpoint, data=None) -> requests.Response:
         """ Returns response """
@@ -355,13 +349,11 @@ class PlexInstance:
         res = requests.post(f'{self.url}{endpoint}', headers=hdr, data=json.dumps(data))
         return res
 
-
     def _delete(self, hdr, endpoint, data=None) -> requests.Response:
         """ Returns response """
         hdr = {'accept': 'application/json', **hdr}
         res = requests.delete(f'{self.url}{endpoint}', headers=hdr, data=json.dumps(data))
         return res
-
 
     def get_defined_libraries(self):
         names = [name for name in self.libraries.keys()]
@@ -371,7 +363,6 @@ class PlexInstance:
                 if v not in ids:
                     ids.append(str(v))
         return {'names': names, 'IDs': ids}
-
 
     def get_plex_share(self, share_name_or_number):
         if not self.libraries:
@@ -384,13 +375,11 @@ class PlexInstance:
                     return numbers
             return False
 
-
     def _get_server_from_user_share(self, plex_user):
         try:
             return plex_user.server(self.name)
         except:
             return plex_user.server(self.alt_name)
-
 
     def get_user_restrictions(self, plex_username):
         user = self.get_user(username=plex_username)
@@ -410,8 +399,8 @@ class PlexInstance:
         else:
             raise Exception(f"Could not locate Plex user: {plex_username}")
 
-
-    def update_user_restrictions(self, plex_username, sections_to_share=[], rating_limit={}, allow_sync: bool = None) -> bool:
+    def update_user_restrictions(self, plex_username, sections_to_share=[], rating_limit={},
+                                 allow_sync: bool = None) -> bool:
         """
         :param plex_username:
         :param sections_to_share:
@@ -464,7 +453,7 @@ class PlexInstance:
 
 
 class PlexConnections:
-    def __init__(self, plex_credentials: dict, database: DiscordMediaServerConnectorDatabase):
+    def __init__(self, plex_credentials: PlexCredentials, database: DiscordMediaServerConnectorDatabase):
         """
         :param plex_credentials: {1: {'url', 'token', 'name', 'altname', 'credsfolder', 'tautulli': {'url', 'api_key'}, 'ombi': {'url', 'api_key'}}, 'libraries': {'movies': [1], 'shows': [2, 3]}}
         """
@@ -473,32 +462,26 @@ class PlexConnections:
 
     @property
     def plex_connectors(self) -> dict:
-        connectors = {}
-        for server_number, info in self._credentials.items():
-            connectors[int(server_number)] = PlexInstance(url=info.get('server_url'),
-                                                          token=info.get('server_token'),
-                                                          api=self,
-                                                          server_name=info.get('server_name'),
-                                                          server_alt_name=info.get('alternate_server_name'),
-                                                          server_number=server_number,
-                                                          credentials_folder=info.get('user_credentials_folder'),
-                                                          tautulli_info=info.get('tautulli'),
-                                                          ombi_info=info.get('ombi'),
-                                                          libraries=info.get('libraries')
-                                                          )
+        connectors = {1: PlexInstance(url=self._credentials.plex_url,
+                                      token=self._credentials.plex_token,
+                                      api=self,
+                                      server_name=self._credentials.plex_server_name,
+                                      server_alt_name=self._credentials.plex_server_alt_name,
+                                      server_number=1,
+                                      credentials_folder="credentials/users",
+                                      tautulli_info=self._credentials.tautulli,
+                                      ombi_info=self._credentials.ombi
+                                      )}
         return connectors
-
 
     def get_plex_instance(self, server_number: int = None) -> Union[PlexInstance, None]:
         if server_number:
             return self.plex_connectors.get(server_number, None)
         return self.all_plex_instances[0]
 
-
     @property
     def all_plex_instances(self) -> List[PlexInstance]:
         return [connector for _, connector in self.plex_connectors.items()]
-
 
     @property
     def smallest_server(self) -> PlexInstance:
@@ -511,47 +494,41 @@ class PlexConnections:
                 smallest_server = plex_connection
         return smallest_server
 
-
     def add_user_to_smallest_server(self, plex_username: str) -> bool:
         smallest_server = self.smallest_server
         return smallest_server.add_user(plex_username=plex_username).__bool__()
 
-
-    def add_user_to_specific_server(self, plex_username: str, server_number: int = 0, plex_connection = None) -> bool:
+    def add_user_to_specific_server(self, plex_username: str, server_number: int = 0, plex_connection=None) -> bool:
         if not plex_connection:
             plex_connection = self.plex_connectors[server_number]
         if plex_connection.add_user_to_plex(plex_username=plex_username):
             return True
         return False
 
-
     def add_user_to_all_servers(self, plex_username: str) -> bool:
         for server_number, plex_connection in self.plex_connectors.items():
             plex_connection.add_user(plex_username=plex_username)
         return True
 
-
-    def remove_user_from_specific_server(self, plex_username: str, server_number: int = 0, plex_connection = None) -> bool:
+    def remove_user_from_specific_server(self, plex_username: str, server_number: int = 0,
+                                         plex_connection=None) -> bool:
         if not plex_connection:
             plex_connection = self.plex_connectors[server_number]
         if plex_connection.remove_user_from_plex(plex_username=plex_username):
             return True
         return False
 
-
     def remove_user_from_all_servers(self, plex_username: str) -> bool:
         for server_number, plex_connection in self.plex_connectors.items():
             plex_connection.remove_user(plex_username=plex_username)
         return True
 
-
-    def refresh_specific_tautulli(self, server_number: int, plex_connection = None) -> bool:
+    def refresh_specific_tautulli(self, server_number: int, plex_connection=None) -> bool:
         if not plex_connection:
             plex_connection = self.plex_connectors[server_number]
         if plex_connection.use_tautulli:
             plex_connection.refresh_tautulli_users()
         return True
-
 
     def refresh_all_tautullis(self) -> bool:
         for server_number, plex_connection in self.plex_connectors.items():
@@ -559,14 +536,13 @@ class PlexConnections:
                 plex_connection.refresh_tautulli_users()
         return True
 
-
-    def remove_user_from_specific_tautulli(self, plex_username: str, server_number: int = 0, plex_connection = None) -> bool:
+    def remove_user_from_specific_tautulli(self, plex_username: str, server_number: int = 0,
+                                           plex_connection=None) -> bool:
         if not plex_connection:
             plex_connection = self.plex_connectors[server_number]
         if plex_connection.use_tautulli:
             return plex_connection.delete_user_from_tautulli(plex_username=plex_username)
         return False
-
 
     def remove_user_from_all_tautullis(self, plex_username: str) -> bool:
         for server_number, plex_connection in self.plex_connectors.items():
@@ -574,14 +550,12 @@ class PlexConnections:
                 plex_connection.delete_user_from_tautulli(plex_username=plex_username)
         return True
 
-
-    def refresh_specific_ombi(self, server_number: int, plex_connection = None) -> bool:
+    def refresh_specific_ombi(self, server_number: int, plex_connection=None) -> bool:
         if not plex_connection:
             plex_connection = self.plex_connectors[server_number]
         if plex_connection.use_ombi:
             return plex_connection.refresh_ombi_users()
         return False
-
 
     def refresh_all_ombis(self) -> bool:
         for server_number, plex_connection in self.plex_connectors.items():
@@ -589,14 +563,12 @@ class PlexConnections:
                 plex_connection.refresh_ombi_users()
         return True
 
-
-    def remove_user_from_specific_ombi(self, plex_username: str, server_number: int = 0, plex_connection = None) -> bool:
+    def remove_user_from_specific_ombi(self, plex_username: str, server_number: int = 0, plex_connection=None) -> bool:
         if not plex_connection:
             plex_connection = self.plex_connectors[server_number]
         if plex_connection.use_ombi:
             return plex_connection.delete_user_from_ombi(username=plex_username)
         return False
-
 
     def remove_user_from_all_ombis(self, plex_username: str) -> bool:
         for server_number, plex_connection in self.plex_connectors.items():

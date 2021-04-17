@@ -1,6 +1,7 @@
-from databases.media_server_connector.database import DiscordMediaServerConnectorDatabase
+from databases.media_server_connector.database import DiscordMediaServerConnectorDatabase, PlatformType
 
-def get_database(media_server_type: str = "plex", **kwargs):
+
+def get_database(media_server_type: PlatformType = PlatformType.Plex, **kwargs):
     db_file_path = "databases/media_server_connector/database.db"
     return DiscordMediaServerConnectorDatabase(sqlite_file=db_file_path,
                                                encrypted=False,

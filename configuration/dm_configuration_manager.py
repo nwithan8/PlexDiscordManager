@@ -4,10 +4,10 @@ import discord
 from discord.ext import commands
 
 from databases.media_server_connector.table_connector import ConfigType, config_type_to_table_schema, \
-    string_to_config_type, table_schema_to_table
+    string_to_config_type, table_schema_to_table, config_type_to_string
 from databases.tools import get_table_schema_name, human_type_to_python_type, \
     table_schema_to_discord_embed, table_values_to_discord_embeds, table_schema_to_name_type_pairs
-from load_config import get_database
+from modules.load_config import get_database
 from modules import discord_helper
 from modules.classes.dm_session import DMSession
 
@@ -41,6 +41,11 @@ class DMConfigurationSession(DMSession):
             }
             prompt_callback_pairs.append(pair)
         return prompt_callback_pairs
+
+    async def send_config_sections(self):
+        section_names = [config_type_to_string(config_type=config_type) for config_type in ConfigType]
+        message = "\n".join(section_names)
+        await self.send_message(message=message)
 
     async def send_config_options_message(self, config_type: ConfigType):
         messages = generate_config_options_messages(config_type=config_type)

@@ -1,6 +1,7 @@
 from configuration.dm_configuration_manager import DMConfigurationSession
-from databases.media_server_connector.table_connector import string_to_config_type
-from load_config import get_database
+from configuration.settings_manager import SettingsManager
+from databases.media_server_connector.table_connector import string_to_config_type, ConfigType
+from modules.load_config import get_database
 from modules import discord_helper
 from modules.classes.basic_cog import *
 
@@ -9,6 +10,10 @@ class ConfigurationManager(BasicCog):
     def __init__(self, bot):
         super().__init__(bot)
         self._dm_session = None
+        self._settings_manager: SettingsManager = None
+
+    def set_settings_manager(self, settings_manager: SettingsManager):
+        self._settings_manager = settings_manager
 
     def start_dm_session(self, user):
         self._dm_session = DMConfigurationSession(bot=self.bot, user=user)
@@ -36,7 +41,6 @@ class ConfigurationManager(BasicCog):
         if database.set_bot_prefix(prefix=new_prefix):  # no need to go into a DM for this
             await self.respond(item="Prefix updated. You'll need to restart the bot for this to take effect.", ctx=ctx)
 
-
     @config.command(name="claim", pass_context=True)
     async def config_claim_admin(self, ctx: commands.Context):
         """
@@ -47,14 +51,32 @@ class ConfigurationManager(BasicCog):
 
         if not admin_id:
             database.set_admin_id(admin_id=ctx.author.id)
+            self._settings_manager.refresh_settings(config_type=ConfigType.General)
             await self.respond("You are now registered as the admin of this bot.", ctx=ctx)
         else:
-            await self.respond(f"{discord_helper.mention_user(admin_id)} is already registered as the admin of this bot.", ctx=ctx)
+            await self.respond(
+                f"{discord_helper.mention_user(admin_id)} is already registered as the admin of this bot.", ctx=ctx)
+
+    @config.command(name="sections", pass_context=True)
+    async def config_sections(self, ctx: commands.Context):
+        """
+        See all settings sections
+        """
+        database = get_database()
+        admin_id = database.admin_id
+
+        if admin_id != ctx.author.id:  # None =\= something, so will still be locked even if no admin
+            await self.respond("This command is locked to admins.", ctx=ctx)
+            return
+
+        self.start_dm_session(user=ctx.author)
+        await self._dm_session.send_config_sections()
+        await self.direct_user_to_dm_if_needed(ctx=ctx)
 
     @config.command(name="vars", pass_context=True)
     async def config_variables(self, ctx: commands.Context, section: str):
         """
-        See the variables names and types
+        See the variables names and types for a specific section
         """
         database = get_database()
         admin_id = database.admin_id
@@ -75,12 +97,12 @@ class ConfigurationManager(BasicCog):
     @config.command(name="show", pass_context=True)
     async def config_show(self, ctx: commands.Context, section: str):
         """
-        See the current settings
+        See the current settings of a specific section
         """
         database = get_database()
         admin_id = database.admin_id
 
-        if admin_id != ctx.author.id: # None =\= something, so will still be locked even if no admin
+        if admin_id != ctx.author.id:  # None =\= something, so will still be locked even if no admin
             await self.respond("This command is locked to admins.", ctx=ctx)
             return
 
@@ -96,12 +118,12 @@ class ConfigurationManager(BasicCog):
     @config.command(name="edit", pass_context=True)
     async def config_edit(self, ctx: commands.Context, section: str, setting_name: str, setting_value: str):
         """
-        Edit the settings
+        Edit the settings of a specific section
         """
         database = get_database()
         admin_id = database.admin_id
 
-        if admin_id != ctx.author.id: # None =\= something, so will still be locked even if no admin
+        if admin_id != ctx.author.id:  # None =\= something, so will still be locked even if no admin
             await self.respond("This command is locked to admins.", ctx=ctx)
             return
 
@@ -117,7 +139,9 @@ class ConfigurationManager(BasicCog):
 
         # We only get here if we're already in a direct message, so no need to direct user to the DM
         self.start_dm_session(user=ctx.author)
-        await self._dm_session.update_config(config_type=section, variable_name=setting_name, variable_value=setting_value)
+        await self._dm_session.update_config(config_type=section, variable_name=setting_name,
+                                             variable_value=setting_value)
+        self._settings_manager.refresh_settings(config_type=config_type)
 
     @config.command(name="setup", pass_context=True)
     async def config_setup(self, ctx: commands.Context, section: str):
@@ -139,6 +163,7 @@ class ConfigurationManager(BasicCog):
         self.start_dm_session(user=ctx.author)
         await self.direct_user_to_dm_if_needed(ctx=ctx)
         await self._dm_session.initialize_config(config_type=config_type)
+        self._settings_manager.refresh_settings(config_type=config_type)
 
 
 def setup(bot):

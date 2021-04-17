@@ -55,9 +55,9 @@ def table_values_to_discord_embeds(database, table_name: str, table: Table, get_
     column_names = [column.name for column in table.columns]
     embeds = []
     if get_all:
-        entries = database.get_all_entries(table_type=table)
+        entries = database.get_all_entries(table_schema=table)
     else:
-        entries = [database.get_first_entry(table_type=table)]
+        entries = [database.get_first_entry(table_schema=table)]
     if not entries:
         embeds.append(f"There are no {table_name} entries currently.")
         return embeds

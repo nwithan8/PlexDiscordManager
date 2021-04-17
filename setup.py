@@ -1,4 +1,4 @@
-from load_config import get_database
+from modules.load_config import get_database
 
 def set_defaults():
     database = get_database()

@@ -1,3 +1,6 @@
+from typing import Union
+
+from databases.media_server_connector.database import PlatformType
 from databases.media_server_connector.tables.config import *
 from databases.media_server_connector.tables.media_server_settings import *
 
@@ -12,7 +15,20 @@ class ConfigType(Enum):
     General = 7,
     Plex = 8,
     Tautulli = 9,
-    Ombi = 10
+    Ombi = 10,
+    Emby = 11,
+    Jellyfin = 12
+
+
+def config_type_to_platform_type(config_type: ConfigType) -> PlatformType:
+    """
+    Default to Plex as the platform for database, unless we need to specifically access Emby or Jellyfin things
+    """
+    if config_type in [ConfigType.Emby]:
+        return PlatformType.Emby
+    if config_type in [ConfigType.Jellyfin]:
+        return PlatformType.Jellyfin
+    return PlatformType.Plex
 
 
 def _get_table_by_name(table_name: str) -> Table:
@@ -50,11 +66,37 @@ def table_schema_to_table_name(table_schema) -> str:
         return "tautulliSettings"
     return ""
 
+
 def get_table(table_schema: DeclarativeMeta) -> Table:
     return table_schema_to_table(table_schema=table_schema)
 
+
 def get_table_name(table_schema: DeclarativeMeta) -> str:
     return table_schema_to_table_name(table_schema=table_schema)
+
+
+def table_schema_to_config_type(table_schema):
+    if table_schema == DiscordConfiguration:
+        return ConfigType.Discord
+    if table_schema == ExemptUsers:
+        return ConfigType.Exemptions
+    if table_schema == TrialConfiguration:
+        return ConfigType.Trial
+    if table_schema == WinnerConfiguration:
+        return ConfigType.Winner
+    if table_schema == SubscriberConfiguration:
+        return ConfigType.Subscriber
+    if table_schema == SubscriberRoles:
+        return ConfigType.Roles
+    if table_schema == MediaServerConfiguration:
+        return ConfigType.General
+    if table_schema == PlexSettings:
+        return ConfigType.Plex
+    if table_schema == TautulliSettings:
+        return ConfigType.Tautulli
+    if table_schema == OmbiSettings:
+        return ConfigType.Ombi
+    return None
 
 
 def config_type_to_table_schema(config_type: ConfigType):
